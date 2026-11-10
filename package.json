@@ -20,7 +20,10 @@
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @flowpilot/db generate",
     "db:migrate": "pnpm --filter @flowpilot/db migrate",
-    "db:seed": "pnpm --filter @flowpilot/db seed"
+    "db:seed": "pnpm --filter @flowpilot/api seed"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "@prisma/client", "prisma", "@prisma/engines"]
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
