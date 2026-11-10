@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: flowpilot
+          POSTGRES_PASSWORD: flowpilot_ci
+          POSTGRES_DB: flowpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U flowpilot -d flowpilot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 8
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 8
+    env:
+      DATABASE_URL: postgresql://flowpilot:flowpilot_ci@localhost:5432/flowpilot
+      REDIS_URL: redis://localhost:6379
+      EXECUTION_MODE: inline
+      ALLOW_SIGNUP: 'true'
+      WEB_ORIGIN: http://localhost:5173
+      LOG_LEVEL: silent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Configure signing keys
+        run: |
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "ENCRYPTION_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - run: pnpm --filter @flowpilot/db exec prisma migrate deploy
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm build
+      - run: pnpm -r typecheck
+      - run: pnpm test

@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workflows   Workflow[]
+  credentials Credential[]
+}
+
+model Workflow {
+  id               String           @id @default(cuid())
+  ownerId          String
+  owner            User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name             String
+  description      String           @default("")
+  active           Boolean          @default(false)
+  errorWorkflowId  String?
+  errorWorkflow    Workflow?        @relation("ErrorWorkflow", fields: [errorWorkflowId], references: [id], onDelete: SetNull)
+  errorOf          Workflow[]       @relation("ErrorWorkflow")
+  currentVersionId String?          @unique
+  currentVersion   WorkflowVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  versions   WorkflowVersion[] @relation("WorkflowVersions")
+  executions Execution[]
+  webhooks   Webhook[]
+  schedule   Schedule?
+  poll       Poll?
+  state      WorkflowState[]
+
+  @@index([ownerId, updatedAt])
+}
+
+model WorkflowVersion {
+  id         String     @id @default(cuid())
+  workflowId String
+  workflow   Workflow   @relation("WorkflowVersions", fields: [workflowId], references: [id], onDelete: Cascade)
+  currentOf  Workflow?  @relation("CurrentVersion")
+  version    Int
+  nodes      Json
+  edges      Json
+  note       String     @default("")
+  createdAt  DateTime   @default(now())
+  executions Execution[]
+
+  @@unique([workflowId, version])
+  @@index([workflowId, version])
+}
+
+model Credential {
+  id         String   @id @default(cuid())
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name       String
+  type       String
+  ciphertext String
+  iv         String
+  authTag    String
+  preview    String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+}
+
+model Execution {
+  id         String    @id @default(cuid())
+  workflowId String
+  workflow   Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  versionId  String
+  version    WorkflowVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  status     String
+  trigger    String
+  mode       String    @default("standard")
+  attempt    Int       @default(1)
+  parentId   String?
+  input      Json
+  output     Json?
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+  steps      ExecutionStep[]
+
+  @@index([workflowId, createdAt])
+  @@index([status, startedAt])
+}
+
+model ExecutionStep {
+  id          String    @id @default(cuid())
+  executionId String
+  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  nodeId      String
+  nodeName    String
+  nodeType    String
+  status      String
+  input       Json
+  output      Json
+  error       String?
+  warnings    Json?
+  attempt     Int       @default(1)
+  startedAt   DateTime
+  finishedAt  DateTime
+  order       Int
+
+  @@index([executionId, order])
+}
+
+model Webhook {
+  id         String   @id @default(cuid())
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  nodeId     String
+  path       String   @unique
+  method     String   @default("POST")
+  kind       String
+  createdAt  DateTime @default(now())
+
+  @@unique([workflowId, nodeId])
+  @@index([workflowId])
+}
+
+model Schedule {
+  id         String    @id @default(cuid())
+  workflowId String    @unique
+  workflow   Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  cron       String
+  timezone   String    @default("UTC")
+  enabled    Boolean   @default(true)
+  nextRunAt  DateTime?
+  lastRunAt  DateTime?
+}
+
+model Poll {
+  id              String    @id @default(cuid())
+  workflowId      String    @unique
+  workflow        Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  intervalMinutes Int
+  enabled         Boolean   @default(true)
+  nextRunAt       DateTime?
+  lastRunAt       DateTime?
+}
+
+model WorkflowState {
+  id         String   @id @default(cuid())
+  workflowId String
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  key        String
+  value      Json
+  updatedAt  DateTime @updatedAt
+
+  @@unique([workflowId, key])
+}

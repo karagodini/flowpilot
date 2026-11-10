@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+.turbo
+.vite
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+apps/web/dist
+packages/**/*.tsbuildinfo
+apps/**/*.tsbuildinfo
+.prisma
+*.pem
+playwright-report
+/tmp

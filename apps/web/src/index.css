@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #070b14;
+  color: #e7eefc;
+  font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(94, 234, 212, 0.28);
+}
+
+.canvas-grid {
+  background-color: #0a1020;
+  background-image: radial-gradient(rgba(214, 224, 244, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid rgba(214, 224, 244, 0.12);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.react-flow__controls-button {
+  background: #141c2f;
+  border-bottom: 1px solid rgba(214, 224, 244, 0.08);
+  fill: #d5deee;
+  width: 28px;
+  height: 28px;
+}
+
+.react-flow__controls-button:hover {
+  background: #1c2740;
+}
+
+.react-flow__minimap {
+  overflow: hidden;
+  background: #10182b !important;
+  border: 1px solid rgba(214, 224, 244, 0.12);
+  border-radius: 12px;
+}
+
+.react-flow__edge-path {
+  stroke: #8ea0c3;
+  stroke-width: 1.7;
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:focus .react-flow__edge-path {
+  stroke: #5eead4;
+}
+
+.react-flow__edge-textbg {
+  fill: #10182b;
+}
+
+.react-flow__edge-text {
+  fill: #d5deee;
+  font-size: 11px;
+}
+
+.react-flow__attribution {
+  background: transparent !important;
+  color: rgba(147, 160, 184, 0.7) !important;
+}
+
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+  background: #d7e2f5;
+  border: 2px solid #0c1222;
+}
+
+.step-node {
+  width: 232px;
+  border-radius: 16px;
+  border: 1px solid rgba(214, 224, 244, 0.14);
+  background: linear-gradient(180deg, rgba(24, 34, 56, 0.96), rgba(14, 21, 38, 0.96));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.step-node.selected {
+  border-color: rgba(94, 234, 212, 0.85);
+  box-shadow:
+    0 0 0 4px rgba(94, 234, 212, 0.12),
+    0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.step-node.run-success {
+  box-shadow: inset 3px 0 0 #5eead4;
+}
+
+.step-node.run-error {
+  box-shadow: inset 3px 0 0 #fb7185;
+}
+
+.step-node.run-skipped {
+  box-shadow: inset 3px 0 0 #fbbf24;
+}
+
+.json-key {
+  color: #93c5fd;
+}
+.json-string {
+  color: #99f6e4;
+}
+.json-number {
+  color: #fbbf24;
+}
+.json-literal {
+  color: #c4b5fd;
+}
