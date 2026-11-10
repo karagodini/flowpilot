@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { Item, WorkflowGraph, WorkflowNode } from '@flowpilot/shared';
+import {
+  validateGraph,
+  WORKFLOW_TEMPLATES,
+  type Item,
+  type WorkflowGraph,
+  type WorkflowNode,
+} from '@flowpilot/shared';
 import {
   assertPublicHttpUrl,
   assertWriteSql,
@@ -895,6 +901,15 @@ try {
     );
     expect(result.status).toBe('error');
     expect(result.error).toContain('time limit');
+  });
+});
+
+describe('templates', () => {
+  it('ships graphs that can be saved', () => {
+    for (const template of WORKFLOW_TEMPLATES) {
+      const { errors } = validateGraph(template.graph);
+      expect(errors, template.id).toEqual([]);
+    }
   });
 });
 
