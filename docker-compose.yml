@@ -1,0 +1,121 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: flowpilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: flowpilot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowpilot -d flowpilot']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: runtime
+    command:
+      [
+        'sh',
+        '-c',
+        'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do pnpm --filter @flowpilot/db exec prisma migrate deploy && exit 0; sleep 2; done; exit 1',
+      ]
+    environment:
+      DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD}@postgres:5432/flowpilot
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+      target: runtime
+    environment:
+      DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD}@postgres:5432/flowpilot
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8080}
+      EXECUTION_MODE: queue
+      ALLOW_SIGNUP: ${ALLOW_SIGNUP:-true}
+      PORT: 4000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - '4000:4000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    build:
+      context: .
+      target: runtime
+    command: ['node', 'apps/api/dist/worker.js']
+    environment:
+      DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD}@postgres:5432/flowpilot
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY}
+      EXECUTION_MODE: queue
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - '8080:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+  seed:
+    build:
+      context: .
+      target: runtime
+    profiles: ['seed']
+    command: ['pnpm', '--filter', '@flowpilot/api', 'seed']
+    environment:
+      DATABASE_URL: postgresql://flowpilot:${POSTGRES_PASSWORD}@postgres:5432/flowpilot
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set ENCRYPTION_KEY}
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:?Set SEED_USER_PASSWORD}
+      SEED_USER_EMAIL: ${SEED_USER_EMAIL:-mira.ellison@harborlane.com}
+      SEED_USER_NAME: ${SEED_USER_NAME:-Mira Ellison}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: 'no'
+
+volumes:
+  pgdata:

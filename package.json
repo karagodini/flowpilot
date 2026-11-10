@@ -23,7 +23,12 @@
     "db:seed": "pnpm --filter @flowpilot/api seed"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "@prisma/client", "prisma", "@prisma/engines"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@prisma/client",
+      "prisma",
+      "@prisma/engines"
+    ]
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
