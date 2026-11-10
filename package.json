@@ -1,0 +1,35 @@
+{
+  "name": "flowpilot",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Visual workflow automation for operational teams.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @flowpilot/api --filter @flowpilot/web dev",
+    "dev:worker": "pnpm --filter @flowpilot/api dev:worker",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @flowpilot/db generate",
+    "db:migrate": "pnpm --filter @flowpilot/db migrate",
+    "db:seed": "pnpm --filter @flowpilot/db seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2"
+  }
+}
