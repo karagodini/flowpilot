@@ -67,6 +67,17 @@ export function AppShell() {
             ))}
           </nav>
         </div>
+        <button
+          type="button"
+          className="rounded-full p-2 text-mist hover:bg-white/5 hover:text-white md:hidden"
+          aria-label="Sign out"
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }}
+        >
+          <LogOut className="h-4 w-4" />
+        </button>
         <div className="hidden items-center justify-between gap-2 rounded-2xl border border-line px-3 py-2 md:flex">
           <div className="min-w-0">
             <div className="truncate text-sm text-white">{user?.name}</div>

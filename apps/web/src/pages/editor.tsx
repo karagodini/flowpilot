@@ -302,7 +302,7 @@ export function EditorPage() {
           ))}
         </aside>
         <div
-          className="canvas-grid min-h-[520px]"
+          className="canvas-grid h-full min-h-[520px]"
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             event.preventDefault();
